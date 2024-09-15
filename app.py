@@ -104,5 +104,3 @@ if question:
     # Store the updated prompt in the session state
     st.session_state["prompt"] = prompt
 
-
-# openai.api_key = "sk-l6NJ-vZAPJIl3-rbAkoWBGw_SPqmzGSm9qi37Zn4RVT3BlbkFJApuJJEi6uQIG1UhDCCH1fvcsVNX7M90SaJcYtW9kAA"
