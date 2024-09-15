@@ -1,30 +1,25 @@
-# Import necessary libraries
-import databutton as db
 import streamlit as st
 import openai
 from brain import get_index_for_pdf
-from langchain.chains import RetrievalQA
-from langchain.chat_models import ChatOpenAI
+from langchain.chains import RetrievalQA  # Reverting this import
+from langchain_community.chat_models import ChatOpenAI
 import os
 
 # Set the title for the Streamlit app
 st.title("RAG enhanced Chatbot")
 
-# Set up the OpenAI API key from databutton secrets
-os.environ["OPENAI_API_KEY"] = db.secrets.get("OPENAI_API_KEY")
-openai.api_key = db.secrets.get("OPENAI_API_KEY")
-
+# Initialize OpenAI with the API key
+openai.api_key = ""
 
 # Cached function to create a vectordb for the provided PDF files
-@st.cache_data
+@st.cache_resource
 def create_vectordb(files, filenames):
     # Show a spinner while creating the vectordb
-    with st.spinner("Vector database"):
+    with st.spinner("Creating vector database..."):
         vectordb = get_index_for_pdf(
             [file.getvalue() for file in files], filenames, openai.api_key
         )
     return vectordb
-
 
 # Upload PDF files using Streamlit's file uploader
 pdf_files = st.file_uploader("", type="pdf", accept_multiple_files=True)
@@ -36,18 +31,18 @@ if pdf_files:
 
 # Define the template for the chatbot prompt
 prompt_template = """
-    You are a helpful Assistant who answers to users questions based on multiple contexts given to you.
+    You are a helpful Assistant who answers users' questions based on the context given to you.
 
-    Keep your answer short and to the point.
-    
-    The evidence are the context of the pdf extract with metadata. 
-    
-    Carefully focus on the metadata specially 'filename' and 'page' whenever answering.
-    
-    Make sure to add filename and page number at the end of sentence you are citing to.
-        
-    Reply "Not applicable" if text is irrelevant.
-     
+    Keep your answers short and to the point.
+
+    The evidence is the context of the PDF extract with metadata.
+
+    Carefully focus on the metadata, especially 'filename' and 'page' whenever answering.
+
+    Make sure to add the filename and page number at the end of the sentence you are citing.
+
+    Reply "Not applicable" if the text is irrelevant.
+
     The PDF content is:
     {pdf_extract}
 """
@@ -74,10 +69,9 @@ if question:
 
     # Search the vectordb for similar content to the user's question
     search_results = vectordb.similarity_search(question, k=3)
-    # search_results
-    pdf_extract = "/n ".join([result.page_content for result in search_results])
+    pdf_extract = "\n".join([result.page_content for result in search_results])
 
-    # Update the prompt with the pdf extract
+    # Update the prompt with the PDF extract
     prompt[0] = {
         "role": "system",
         "content": prompt_template.format(pdf_extract=pdf_extract),
@@ -109,7 +103,6 @@ if question:
 
     # Store the updated prompt in the session state
     st.session_state["prompt"] = prompt
-    prompt.append({"role": "assistant", "content": result})
 
-    # Store the updated prompt in the session state
-    st.session_state["prompt"] = prompt
+
+# openai.api_key = "sk-l6NJ-vZAPJIl3-rbAkoWBGw_SPqmzGSm9qi37Zn4RVT3BlbkFJApuJJEi6uQIG1UhDCCH1fvcsVNX7M90SaJcYtW9kAA"
