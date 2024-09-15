@@ -9,7 +9,7 @@ import os
 st.title("RAG enhanced Chatbot")
 
 # Initialize OpenAI with the API key
-openai.api_key = ""
+# openai.api_key = ""
 
 # Cached function to create a vectordb for the provided PDF files
 @st.cache_resource
